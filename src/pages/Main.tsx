@@ -7,7 +7,7 @@ import Avatar from '@mui/material/Avatar';
 import Typography from '@mui/material/Typography';
 import AddKbEntryForm from "../components/AddKbEntryForm";
 import TagSelection from "../components/TagSelection";
-import {Chip, Container} from "@mui/material";
+import {Box, Chip, Container, Stack} from "@mui/material";
 import {useState} from "react";
 import {KbEntry} from "../model/kb-entry";
 import {Tag} from "../model/tag";
@@ -84,10 +84,15 @@ const Main = () => {
                                     </Typography>
                                 }
                             />
-                            {kb.tags.map(tg => <Chip key={kb.id + "-" + tg.tagId} label={tg.tagNm} variant="outlined"
-                                                     onDelete={handleDelete}/>)}
                         </ListItem>
-                        <Divider key={"div-" + kb.id} variant="inset" component="li"/>
+                        <Stack spacing={2}>
+                            <Box>
+                                {kb.tags.map(tg => <Chip key={kb.id + "-" + tg.tagId} label={tg.tagNm}
+                                                         variant="outlined"
+                                                         onDelete={handleDelete}/>)}
+                            </Box>
+                            <Divider key={"div-" + kb.id} variant="inset" component="li"/>
+                        </Stack>
                     </React.Fragment>
                 )}
             </List>
