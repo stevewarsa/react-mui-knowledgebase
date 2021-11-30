@@ -98,8 +98,8 @@ const Main = () => {
         <Container>
             {busy.state && <p>{busy.message}</p>}
             <AddKbEntryForm/>
-            {kbEntries && kbEntries.length > 0 && <TagSelection tagSelectionCallback={handleTagSelection}/>}
-            <List sx={{width: '100%', maxWidth: 360, bgcolor: 'background.paper'}}>
+            {/*{kbEntries && kbEntries.length > 0 && <TagSelection tagSelectionCallback={handleTagSelection}/>}*/}
+            <List sx={{width: '100%', bgcolor: 'background.paper'}}>
                 {kbEntries && kbEntries.length > 0 && kbEntries.map(kb =>
                     <React.Fragment key={"frag-" + kb.id}>
                         <ListItem key={kb.id} alignItems="flex-start">
