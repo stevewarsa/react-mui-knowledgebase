@@ -1,4 +1,14 @@
-import {Box, Button, Collapse, FormControlLabel, IconButton, Stack, TextField, useMediaQuery} from "@mui/material";
+import {
+    Box,
+    Button,
+    Chip,
+    Collapse,
+    FormControlLabel,
+    IconButton,
+    Stack,
+    TextField,
+    useMediaQuery
+} from "@mui/material";
 import {useState} from "react";
 import SaveIcon from '@mui/icons-material/Save';
 import {Cancel, ChevronRight, ExpandMore} from "@mui/icons-material";
@@ -35,6 +45,8 @@ const AddKbEntryForm = () => {
         console.log("AddEntry.handleAddEntry - here is the response:");
         console.log(addEntryResult);
         dispatcher(stateActions.addKbEntry(addEntryResult.data));
+        const tagsResult = await kbService.getTags();
+        dispatcher(stateActions.setAllTags(tagsResult.data));
         setNewEntry(defaultBlankEntry);
         setShowForm(false);
         setSaving(false);
@@ -59,6 +71,12 @@ const AddKbEntryForm = () => {
         });
     };
 
+    const handleRemoveTag = (tagId: number) => {
+        setNewEntry(prevState => {
+            return {...prevState, tags: prevState.tags.filter(tg => tg.tagId !== tagId)};
+        });
+    }
+
     return (
         <>
             {saving && <p>Saving new entry...</p>}
@@ -77,6 +95,11 @@ const AddKbEntryForm = () => {
                     <TextField label="Title" variant="outlined" value={newEntry.title} onChange={handleFormValueChange("title")}/>
                     <TextField label="Description" multiline minRows={3} variant="outlined" value={newEntry.desc} onChange={handleFormValueChange("desc")}/>
                     <TagSelection tagSelectionCallback={handleTagSelection}/>
+                    {newEntry.tags !== null && newEntry.tags.length > 0 &&
+                    <Box>
+                        {newEntry.tags.map(tg => <Chip key={tg.tagId} label={tg.tagNm} sx={{mr: 1}} variant="outlined" onDelete={() => handleRemoveTag(tg.tagId)}/>)}
+                    </Box>
+                    }
                     <Box>
                         <Button sx={{mr: 2}} startIcon={<SaveIcon/>} onClick={handleAddEntry} variant="contained">{largeScreen ? "Add Entry" : ""}</Button>
                         <Button startIcon={<Cancel/>} onClick={handleCancel}  variant="contained"

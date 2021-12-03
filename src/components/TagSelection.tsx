@@ -30,7 +30,7 @@ const TagSelection = ({tagSelectionCallback}) => {
         console.log("TagSelection.handleDialogSubmit - here is the event:");
         console.log(event);
         event.preventDefault();
-        setValue(dialogValue);
+        //setValue(dialogValue);
         tagSelectionCallback(dialogValue);
         handleDialogClose();
     };
@@ -52,6 +52,9 @@ const TagSelection = ({tagSelectionCallback}) => {
         console.log(event);
         console.log("handleAutoCompleteChange - here is the newValue:");
         console.log(newValue);
+        if (newValue === null) {
+            return;
+        }
         if (typeof newValue === 'string') {
             // timeout to avoid instant validation of the dialog's form.
             setTimeout(() => {
@@ -72,7 +75,7 @@ const TagSelection = ({tagSelectionCallback}) => {
                 // what the user typed matches an existing tag name, so don't pop open the dialog
                 console.log("TagSelection.handleAutoCompleteChange - setting value to existingTag:");
                 console.log(existingTag);
-                setValue(existingTag);
+                setValue(defaultTag);
                 tagSelectionCallback(existingTag);
             }
         }
@@ -91,7 +94,6 @@ const TagSelection = ({tagSelectionCallback}) => {
                 options={existingTags}
                 getOptionLabel={handleGetOptionLabel}
                 selectOnFocus
-                clearOnBlur
                 handleHomeEndKeys
                 sx={{ width: 300 }}
                 freeSolo
