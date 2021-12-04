@@ -9,7 +9,7 @@ $filename = 'db/kb.sqlite';
 if (file_exists($filename)) {
 	$db = new SQLite3($filename);
 	$tagQuery = 'SELECT tag_id from kb_tag_kb_entry where kb_id = :kb_id order by tag_id';
-	$results = $db->query('SELECT id, title, description, appl_create_dt from kb_entry order by appl_create_dt desc');
+	$results = $db->query('SELECT id, title, description, markdown, appl_create_dt from kb_entry order by appl_create_dt desc');
 
 	$kbEntries = array();
 	while ($row = $results->fetchArray()) {
@@ -17,6 +17,7 @@ if (file_exists($filename)) {
 		$kbEntry->id = $row['id'];
 		$kbEntry->title = $row['title'];
 		$kbEntry->desc = $row['description'];
+		$kbEntry->markdown = $row['markdown'];
 		$statement = $db->prepare($tagQuery);
 		$statement->bindValue(':kb_id', $kbEntry->id);
 		$tagResults = $statement->execute();

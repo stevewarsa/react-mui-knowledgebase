@@ -1,6 +1,6 @@
 import {
     Box,
-    Button,
+    Button, Checkbox,
     Chip,
     Collapse,
     FormControlLabel,
@@ -19,6 +19,7 @@ import {stateActions} from "../store";
 import {Tag} from "../model/tag";
 import TagSelection from "./TagSelection";
 import Spinner from "./Spinner";
+import MarkdownToHtml from "./MarkdownToHtml";
 
 const defaultBlankEntry = {
     title: "",
@@ -30,6 +31,7 @@ const AddKbEntryForm = () => {
     const dispatcher = useDispatch();
     const [showForm, setShowForm] = useState(false);
     const [saving, setSaving] = useState(false);
+    const [markdown, setMarkdown] = useState(false);
     const [newEntry, setNewEntry] = useState(defaultBlankEntry);
     const largeScreen = useMediaQuery("(min-width:600px)");
 
@@ -40,7 +42,8 @@ const AddKbEntryForm = () => {
 
     const handleAddEntry = async () => {
         setSaving(true);
-        const addEntryResult: any = await kbService.addEntry(newEntry);
+        const entryToAdd = {...newEntry, markdown: markdown};
+        const addEntryResult: any = await kbService.addEntry(entryToAdd);
         dispatcher(stateActions.addKbEntry(addEntryResult.data));
         const tagsResult = await kbService.getTags();
         dispatcher(stateActions.setAllTags(tagsResult.data));
@@ -71,6 +74,10 @@ const AddKbEntryForm = () => {
         });
     }
 
+    const toggleMarkdown = () => {
+        setMarkdown(prevState => !prevState);
+    }
+
     return (
         <>
             {saving && <Spinner message={"Saving new entry..."}/>}
@@ -88,7 +95,9 @@ const AddKbEntryForm = () => {
                 <Stack spacing={2} sx={{p: 2}}>
                     <h3>New Knowledgebase Entry</h3>
                     <TextField label="Title" variant="outlined" value={newEntry.title} onChange={handleFormValueChange("title")}/>
+                    <FormControlLabel control={<Checkbox inputProps={{ 'aria-label': 'controlled' }} checked={markdown} onChange={toggleMarkdown} />} label="Description in markdown?" />
                     <TextField label="Description" multiline minRows={3} variant="outlined" value={newEntry.desc} onChange={handleFormValueChange("desc")}/>
+                    {markdown && <MarkdownToHtml markdown={newEntry.desc}/>}
                     <TagSelection tagSelectionCallback={handleTagSelection}/>
                     {newEntry.tags !== null && newEntry.tags.length > 0 &&
                     <Box>

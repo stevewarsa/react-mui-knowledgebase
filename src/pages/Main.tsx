@@ -12,6 +12,7 @@ import {useDispatch, useSelector} from "react-redux";
 import {stateActions} from "../store";
 import React from 'react';
 import Spinner from "../components/Spinner";
+import MarkdownToHtml from "../components/MarkdownToHtml";
 
 const Main = () => {
     const dispatcher = useDispatch();
@@ -48,6 +49,24 @@ const Main = () => {
         console.log("handleDelete clicked");
     }
 
+    const getDescriptionDisplayJSX = (kb: KbEntry) => {
+        if (kb.markdown) {
+            return <MarkdownToHtml markdown={kb.desc}/>;
+        } else {
+            return (
+                <Typography
+                    key={"typ-" + kb.id}
+                    sx={{display: 'inline'}}
+                    component="span"
+                    variant="body2"
+                    color="text.primary"
+                >
+                    {kb.desc}
+                </Typography>
+            );
+        }
+    };
+
     return (
         <Container>
             {busy.state && <Spinner message={busy.message}/>}
@@ -63,17 +82,7 @@ const Main = () => {
                                     fontSize: 20,
                                     fontWeight: "bold"
                                 }}
-                                secondary={
-                                    <Typography
-                                        key={"typ-" + kb.id}
-                                        sx={{display: 'inline'}}
-                                        component="span"
-                                        variant="body2"
-                                        color="text.primary"
-                                    >
-                                        {kb.desc}
-                                    </Typography>
-                                }
+                                secondary={getDescriptionDisplayJSX(kb)}
                             />
                         </ListItem>
                         <Stack sx={{ml: 2}} spacing={2}>

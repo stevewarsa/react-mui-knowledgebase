@@ -1,7 +1,7 @@
 import React from 'react'
 import ReactMarkdown from 'react-markdown'
-export default function MarkdownToHtml(){
+export default function MarkdownToHtml({markdown}){
     return(
-        <ReactMarkdown>*React-Markdown* is **Awesome**</ReactMarkdown>
+        <ReactMarkdown>{markdown}</ReactMarkdown>
     )
 }

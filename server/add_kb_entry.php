@@ -21,17 +21,19 @@ $filename = 'db/kb.sqlite';
 if (file_exists($filename)) {
 	$db = new SQLite3($filename);
 	try {
-		$statement = $db->prepare('update kb_entry set title = :title, description = :description where id = :id');
+		$statement = $db->prepare('update kb_entry set title = :title, description = :description, markdown = :markdown where id = :id');
 		$statement->bindValue(':title', $kbEntry->title);
 		$statement->bindValue(':description', $kbEntry->desc);
+        $statement->bindValue(':markdown', $kbEntry->markdown);
 		$statement->bindValue(':id', $kbEntry->id);
 		$statement->execute();
 		$statement->close();
 
 		if ($db->changes() < 1) {
-			$statement = $db->prepare("insert into kb_entry (title, description) values (:title,:description)");
+			$statement = $db->prepare("insert into kb_entry (title, description, markdown) values (:title,:description,:markdown)");
 			$statement->bindValue(':title', $kbEntry->title);
-			$statement->bindValue(':description', $kbEntry->desc);
+            $statement->bindValue(':description', $kbEntry->desc);
+            $statement->bindValue(':markdown', $kbEntry->markdown);
 			$statement->execute();
 			$statement->close();
 			error_log("add_kb_entry.php - Inserted new kbEntry...");
