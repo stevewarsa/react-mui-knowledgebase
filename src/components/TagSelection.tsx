@@ -1,6 +1,6 @@
 import {
     Autocomplete,
-    Button,
+    Button, createFilterOptions,
     Dialog,
     DialogActions,
     DialogContent,
@@ -10,13 +10,16 @@ import {
 } from "@mui/material";
 import {useState} from "react";
 import {Tag} from "../model/tag";
-import {useSelector} from "react-redux";
+import {useDispatch, useSelector} from "react-redux";
+import {stateActions} from "../store";
 
-const defaultTag: Tag = {tagCd: "", tagNm: "", tagId: -1};
-
-const TagSelection = ({tagSelectionCallback}) => {
+const defaultTag: Tag = { tagCd: "", tagNm: "", tagId: -1 };
+const filter = createFilterOptions();
+const TagSelection = ({ tagSelectionCallback }) => {
+    const dispatcher = useDispatch();
     const existingTags: Tag[] = useSelector((st: any) => st.allTags);
-    const [value, setValue] = useState(defaultTag);
+    const nextTagId: number = useSelector((st: any) => st.nextTagId);
+    const [value, setValue] = useState(null);
 
     const [dialogOpen, toggleDialogOpen] = useState(false);
     const [dialogValue, setDialogValue] = useState(defaultTag);
@@ -30,24 +33,30 @@ const TagSelection = ({tagSelectionCallback}) => {
         console.log("TagSelection.handleDialogSubmit - here is the event:");
         console.log(event);
         event.preventDefault();
-        //setValue(dialogValue);
         tagSelectionCallback(dialogValue);
+        dispatcher(stateActions.addNewTag(dialogValue));
         handleDialogClose();
     };
 
     const handleDialogTagCdChange = (event) => {
-        setDialogValue(prevState => {
-            return {...prevState, tagCd: event.target.value};
+        setDialogValue((prevState) => {
+            return { ...prevState, tagCd: event.target.value };
         });
     };
 
     const handleDialogTagNmChange = (event) => {
-        setDialogValue(prevState => {
-            return {...prevState, tagNm: event.target.value};
+        setDialogValue((prevState) => {
+            return { ...prevState, tagNm: event.target.value };
         });
     };
 
-    const handleAutoCompleteChange = (event, newValue: Tag) => {
+    const tagIsNew = (val: string) => {
+        return !existingTags.some((tg) =>
+            tg.tagNm.toUpperCase().includes(val.toUpperCase())
+        );
+    };
+
+    const handleAutoCompleteChange = (event, newValue: any) => {
         console.log("handleAutoCompleteChange - here is the event:");
         console.log(event);
         console.log("handleAutoCompleteChange - here is the newValue:");
@@ -55,16 +64,59 @@ const TagSelection = ({tagSelectionCallback}) => {
         if (newValue === null) {
             return;
         }
-        if (typeof newValue === 'string') {
+        if (typeof newValue === "string") {
+            console.log("handleAutoCompleteChange - newValue is string");
             // timeout to avoid instant validation of the dialog's form.
             setTimeout(() => {
                 // what the user typed DOES NOT match an existing tag name, so pop open the dialog
-                setDialogValue({...defaultTag, tagNm: newValue, tagCd: newValue});
+                setDialogValue({
+                    ...defaultTag,
+                    tagNm: newValue,
+                    tagCd: newValue.toLowerCase(),
+                    tagId: nextTagId
+                });
                 toggleDialogOpen(true);
             });
+        } else if (newValue && newValue.inputValue) {
+            console.log(
+                "handleAutoCompleteChange - newValue.inputValue is populated"
+            );
+            if (tagIsNew(newValue.inputValue)) {
+                toggleDialogOpen(true);
+                setDialogValue((prevState) => {
+                    return {
+                        ...prevState,
+                        tagNm: newValue.inputValue,
+                        tagCd: newValue.inputValue.toLowerCase(),
+                        tagId: nextTagId
+                    };
+                });
+            } else {
+                const existingTag = existingTags.find((tg: Tag) =>
+                    tg.tagNm.toUpperCase().includes(newValue.inputValue.toUpperCase())
+                );
+                tagSelectionCallback(existingTag);
+            }
         } else {
-            const existingTag = existingTags.find(tg => tg.tagNm.toUpperCase().includes(newValue.tagNm.toUpperCase()));
+            let existingTag = null;
+            if (newValue.inputValue) {
+                console.log(
+                    "handleAutoCompleteChange(else) - newValue.inputValue is populated"
+                );
+                existingTag = existingTags.find((tg: Tag) =>
+                    tg.tagNm.toUpperCase().includes(newValue.inputValue.toUpperCase())
+                );
+            } else if (newValue.title) {
+                console.log(
+                    "handleAutoCompleteChange(else) - newValue.title is populated"
+                );
+                existingTag = existingTags.find((tg) =>
+                    tg.tagNm.toUpperCase().includes(newValue.title.toUpperCase())
+                );
+            }
+
             if (!existingTag) {
+                console.log("handleAutoCompleteChange(else) - no existing tags match");
                 // timeout to avoid instant validation of the dialog's form.
                 setTimeout(() => {
                     // what the user typed DOES NOT match an existing tag name, so pop open the dialog
@@ -73,7 +125,9 @@ const TagSelection = ({tagSelectionCallback}) => {
                 });
             } else {
                 // what the user typed matches an existing tag name, so don't pop open the dialog
-                console.log("TagSelection.handleAutoCompleteChange - setting value to existingTag:");
+                console.log(
+                    "TagSelection.handleAutoCompleteChange - setting value to existingTag:"
+                );
                 console.log(existingTag);
                 setValue(defaultTag);
                 tagSelectionCallback(existingTag);
@@ -81,30 +135,65 @@ const TagSelection = ({tagSelectionCallback}) => {
         }
     };
 
-    const handleGetOptionLabel = (option: Tag) => {
-        return option.tagNm ? option.tagNm : "";
-    };
-
     return (
         <>
             <Autocomplete
                 value={value}
                 onChange={handleAutoCompleteChange}
-                id="tag-selection"
-                options={existingTags}
-                getOptionLabel={handleGetOptionLabel}
+                filterOptions={(options, params) => {
+                    const filtered = filter(options, params);
+                    console.log("filterOptions - filtered array contains:");
+                    console.log(filtered);
+                    if (params.inputValue !== "") {
+                        console.log("filterOptions - pushing new array element...");
+                        filtered.push({
+                            inputValue: params.inputValue,
+                            title: `Add "${params.inputValue}"`
+                        });
+                    }
+
+                    return filtered;
+                }}
+                id="tag-selection-typeahead"
+                options={existingTags.map((tg: Tag) => {
+                    return { title: tg.tagNm, inputValue: tg.tagNm, id: tg.tagId };
+                })}
+                getOptionLabel={(option) => {
+                    // e.g value selected with enter, right from the input
+                    if (typeof option === "string") {
+                        // console.log("getOptionLabel - returning option as string:");
+                        // console.log(option);
+                        return option;
+                    }
+                    if (option.inputValue) {
+                        // console.log("getOptionLabel - returning option.inputValue:");
+                        // console.log(option);
+                        return option.inputValue;
+                    }
+                    // console.log("getOptionLabel - returning empty string for option:");
+                    // console.log(option);
+                    return "";
+                }}
                 selectOnFocus
+                clearOnBlur
                 handleHomeEndKeys
+                renderOption={(props, option) => (
+                    <li key={option.id} {...props}>
+                        {option.title}
+                    </li>
+                )}
                 sx={{ width: 300 }}
                 freeSolo
-                renderInput={(params) => <TextField {...params} label="Type a tag name" />}
+                renderInput={(params) => (
+                    <TextField {...params} label="Type a tag name" />
+                )}
             />
             <Dialog open={dialogOpen} onClose={handleDialogClose}>
                 <form onSubmit={handleDialogSubmit}>
                     <DialogTitle>Add New Tag?</DialogTitle>
                     <DialogContent>
                         <DialogContentText>
-                            You're adding a new tag to the list.  Are you sure?
+                            You're adding a new tag to the list. Are you sure?
                         </DialogContentText>
                         <TextField
                             autoFocus

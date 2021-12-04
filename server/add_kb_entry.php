@@ -54,7 +54,7 @@ if (file_exists($filename)) {
         if (sizeof($kbEntry->tags) > 0) {
             // First, see if there are any brand new tags added - if so, we need to insert them
             $tagQuery = 'SELECT count(1) as ct from kb_tag where tag_cd = :tag_cd';
-            $tagInsert = 'INSERT into kb_tag (tag_cd, tag_nm) VALUES (:tag_cd, :tag_nm)';
+            $tagInsert = 'INSERT into kb_tag (id, tag_cd, tag_nm) VALUES (:id, :tag_cd, :tag_nm)';
             foreach ($kbEntry->tags as $tg) {
                 $statement = $db->prepare($tagQuery);
                 $statement->bindValue(':tag_cd', $tg->tagCd);
@@ -63,18 +63,11 @@ if (file_exists($filename)) {
                     if (intval($row['ct']) <= 0) {
                         // tag does not exist, so add it
                         $tagInsertStatement = $db->prepare($tagInsert);
+                        $tagInsertStatement->bindValue(':id', $tg->tagId);
                         $tagInsertStatement->bindValue(':tag_cd', $tg->tagCd);
                         $tagInsertStatement->bindValue(':tag_nm', $tg->tagNm);
                         $tagInsertStatement->execute();
                         $tagInsertStatement->close();
-                        // now get the newly generated id
-                        $results = $db->query('SELECT last_insert_rowid() as id');
-                        $id = -1;
-                        while ($row = $results->fetchArray()) {
-                            $id = $row["id"];
-                            break;
-                        }
-                        $tg->tagId = $id;
                     }
                     break;
                 }
