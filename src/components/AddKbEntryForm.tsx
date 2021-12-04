@@ -32,19 +32,15 @@ const AddKbEntryForm = () => {
     const [saving, setSaving] = useState(false);
     const [newEntry, setNewEntry] = useState(defaultBlankEntry);
     const largeScreen = useMediaQuery("(min-width:600px)");
+
     const handleToggleForm = (event) => {
-        console.log("handleToggleForm");
         setShowForm(prevState => !prevState);
         event.preventDefault();
     };
 
     const handleAddEntry = async () => {
         setSaving(true);
-        console.log("handleAddEntry - the value of the entry is:");
-        console.log(newEntry);
         const addEntryResult: any = await kbService.addEntry(newEntry);
-        console.log("AddEntry.handleAddEntry - here is the response:");
-        console.log(addEntryResult);
         dispatcher(stateActions.addKbEntry(addEntryResult.data));
         const tagsResult = await kbService.getTags();
         dispatcher(stateActions.setAllTags(tagsResult.data));
@@ -54,7 +50,6 @@ const AddKbEntryForm = () => {
     };
 
     const handleCancel = () => {
-        console.log("handleCancel");
         setShowForm(false);
     };
 
@@ -65,8 +60,6 @@ const AddKbEntryForm = () => {
     };
 
     const handleTagSelection = (tag: Tag) => {
-        console.log("handleTagSelection - here is the tag selected:");
-        console.log(tag);
         setNewEntry(prevState => {
             return {...prevState, tags: [...prevState.tags, tag]};
         });
