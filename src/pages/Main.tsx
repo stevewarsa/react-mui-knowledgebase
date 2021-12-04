@@ -57,11 +57,6 @@ const Main = () => {
                 {kbEntries && kbEntries.length > 0 && kbEntries.map(kb =>
                     <React.Fragment key={"frag-" + kb.id}>
                         <ListItem key={kb.id} alignItems="flex-start">
-                            <ListItemAvatar key={"lia-" + kb.id}>
-                                <Avatar key={"avt-" + kb.id}
-                                        alt={kb.tags && kb.tags.length > 0 ? kb.tags[0].tagCd : "No Tags"}
-                                        src="/static/images/avatar/1.jpg"/>
-                            </ListItemAvatar>
                             <ListItemText
                                 key={"lit-" + kb.id}
                                 primary={kb.title}
@@ -78,7 +73,7 @@ const Main = () => {
                                 }
                             />
                         </ListItem>
-                        <Stack spacing={2}>
+                        <Stack sx={{ml: 2}} spacing={2}>
                             <Box>
                                 {kb.tags.map(tg => <Chip key={kb.id + "-" + tg.tagId}
                                                          label={tg.tagNm}
