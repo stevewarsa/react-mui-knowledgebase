@@ -3,5 +3,5 @@ import ReactMarkdown from 'react-markdown'
 export default function MarkdownToHtml({markdown}){
     return(
         <ReactMarkdown>{markdown}</ReactMarkdown>
-    )
+    );
 }
