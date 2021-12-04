@@ -18,6 +18,7 @@ import {useDispatch} from "react-redux";
 import {stateActions} from "../store";
 import {Tag} from "../model/tag";
 import TagSelection from "./TagSelection";
+import Spinner from "./Spinner";
 
 const defaultBlankEntry = {
     title: "",
@@ -79,7 +80,7 @@ const AddKbEntryForm = () => {
 
     return (
         <>
-            {saving && <p>Saving new entry...</p>}
+            {saving && <Spinner message={"Saving new entry..."}/>}
             <FormControlLabel
                 label={showForm ? "Hide Add Form" : "Show Add Form"}
                 control={
@@ -91,7 +92,8 @@ const AddKbEntryForm = () => {
                 }
             />
             <Collapse in={showForm}>
-                <Stack spacing={2} sx={{p: 5}}>
+                <Stack spacing={2} sx={{p: 2}}>
+                    <h3>New Knowledgebase Entry</h3>
                     <TextField label="Title" variant="outlined" value={newEntry.title} onChange={handleFormValueChange("title")}/>
                     <TextField label="Description" multiline minRows={3} variant="outlined" value={newEntry.desc} onChange={handleFormValueChange("desc")}/>
                     <TagSelection tagSelectionCallback={handleTagSelection}/>

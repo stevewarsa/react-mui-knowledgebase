@@ -11,6 +11,7 @@ import kbService from "../services/KbService";
 import {useDispatch, useSelector} from "react-redux";
 import {stateActions} from "../store";
 import React from 'react';
+import Spinner from "../components/Spinner";
 
 const Main = () => {
     const dispatcher = useDispatch();
@@ -49,7 +50,7 @@ const Main = () => {
 
     return (
         <Container>
-            {busy.state && <p>{busy.message}</p>}
+            {busy.state && <Spinner message={busy.message}/>}
             <AddKbEntryForm/>
             <List sx={{width: '100%', bgcolor: 'background.paper'}}>
                 {kbEntries && kbEntries.length > 0 && kbEntries.map(kb =>
@@ -59,7 +60,7 @@ const Main = () => {
                                 key={"lit-" + kb.id}
                                 primary={kb.title}
                                 primaryTypographyProps={{
-                                    fontSize: 22,
+                                    fontSize: 20,
                                     fontWeight: "bold"
                                 }}
                                 secondary={
