@@ -1,9 +1,9 @@
-import {Box, CircularProgress} from "@mui/material";
+import {Box, CircularProgress, Typography} from "@mui/material";
 
 const Spinner = ({message}) => {
     return (
-        <Box sx={{ display: "flex" }}>
-            <CircularProgress sx={{mr: 2}} /> <span style={{fontWeight: "bold"}}>{message}</span>
+        <Box sx={{ display: 'flex' }}>
+            <CircularProgress size={40} /> <Typography sx={{ml: 2, fontWeight: "bold", fontSize: 18}}>{message}</Typography>
         </Box>
     );
 };

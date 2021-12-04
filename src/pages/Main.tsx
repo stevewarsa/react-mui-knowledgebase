@@ -20,7 +20,7 @@ const Main = () => {
 
     useEffect(() => {
         const callServer = async () => {
-            setBusy({state: true, message: "Loading data from DB..."});
+            setBusy({state: true, message: "Loading KBs from server..."});
             const tagData: any = await kbService.getTags();
             dispatcher(stateActions.setAllTags(tagData.data));
             const kbEntriesData: any = await kbService.getEntries();
@@ -51,8 +51,8 @@ const Main = () => {
     return (
         <Container>
             {busy.state && <Spinner message={busy.message}/>}
-            <AddKbEntryForm/>
-            <List sx={{width: '100%', bgcolor: 'background.paper'}}>
+            {!busy.state && <AddKbEntryForm/>}
+            {!busy.state && <List sx={{width: '100%', bgcolor: 'background.paper'}}>
                 {kbEntries && kbEntries.length > 0 && kbEntries.map(kb =>
                     <React.Fragment key={"frag-" + kb.id}>
                         <ListItem key={kb.id} alignItems="flex-start">
@@ -88,7 +88,7 @@ const Main = () => {
                         </Stack>
                     </React.Fragment>
                 )}
-            </List>
+            </List>}
         </Container>
     );
 };
