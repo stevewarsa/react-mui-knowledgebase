@@ -13,8 +13,6 @@ error_log("add_kb_entry.php - Here is the JSON received: ");
 error_log($request);
 $kbEntry = json_decode($request);
 
-error_log("add_kb_entry.php - Received data: id=" . $kbEntry->id . ", title=" . $kbEntry->title . ", desc=" . $kbEntry->desc . ", tagCount=" . sizeof($kbEntry->tags));
-
 // now insert or update this kbEntry
 $db = null;
 $filename = 'db/kb.sqlite';
@@ -24,7 +22,7 @@ if (file_exists($filename)) {
 		$statement = $db->prepare('update kb_entry set title = :title, description = :description, markdown = :markdown where id = :id');
 		$statement->bindValue(':title', $kbEntry->title);
 		$statement->bindValue(':description', $kbEntry->desc);
-        $statement->bindValue(':markdown', $kbEntry->markdown);
+        $statement->bindValue(':markdown', $kbEntry->markdown ? 1 : 0);
 		$statement->bindValue(':id', $kbEntry->id);
 		$statement->execute();
 		$statement->close();
@@ -33,7 +31,7 @@ if (file_exists($filename)) {
 			$statement = $db->prepare("insert into kb_entry (title, description, markdown) values (:title,:description,:markdown)");
 			$statement->bindValue(':title', $kbEntry->title);
             $statement->bindValue(':description', $kbEntry->desc);
-            $statement->bindValue(':markdown', $kbEntry->markdown);
+            $statement->bindValue(':markdown', $kbEntry->markdown ? 1 : 0);
 			$statement->execute();
 			$statement->close();
 			error_log("add_kb_entry.php - Inserted new kbEntry...");

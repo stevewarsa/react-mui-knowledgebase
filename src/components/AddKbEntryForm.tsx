@@ -9,13 +9,13 @@ import {
     TextField,
     useMediaQuery
 } from "@mui/material";
-import {useState} from "react";
+import {useEffect, useState} from "react";
 import SaveIcon from '@mui/icons-material/Save';
 import {Cancel, ChevronRight, ExpandMore} from "@mui/icons-material";
 import {KbEntry} from "../model/kb-entry";
 import kbService from "../services/KbService";
-import {useDispatch} from "react-redux";
-import {stateActions} from "../store";
+import {useDispatch, useSelector} from "react-redux";
+import {KbState, stateActions} from "../store";
 import {Tag} from "../model/tag";
 import TagSelection from "./TagSelection";
 import Spinner from "./Spinner";
@@ -29,11 +29,26 @@ const defaultBlankEntry = {
 
 const AddKbEntryForm = () => {
     const dispatcher = useDispatch();
+    const entryToEdit = useSelector((state: KbState) => state.editingEntry);
+    console.log("AddKbEntryForm - entryToEdit passed in is:");
+    console.log(entryToEdit);
     const [showForm, setShowForm] = useState(false);
     const [saving, setSaving] = useState(false);
     const [markdown, setMarkdown] = useState(false);
     const [newEntry, setNewEntry] = useState(defaultBlankEntry);
     const largeScreen = useMediaQuery("(min-width:600px)");
+
+    useEffect(() => {
+        if (entryToEdit) {
+            setShowForm(true);
+            setNewEntry({...entryToEdit});
+            setMarkdown(entryToEdit.markdown);
+        } else {
+            setShowForm(false);
+            setNewEntry(defaultBlankEntry);
+            setMarkdown(false);
+        }
+    }, [entryToEdit]);
 
     const handleToggleForm = (event) => {
         setShowForm(prevState => !prevState);
@@ -50,10 +65,12 @@ const AddKbEntryForm = () => {
         setNewEntry(defaultBlankEntry);
         setShowForm(false);
         setSaving(false);
+        dispatcher(stateActions.clearEditingKbEntry());
     };
 
     const handleCancel = () => {
         setShowForm(false);
+        dispatcher(stateActions.clearEditingKbEntry());
     };
 
     const handleFormValueChange = (prop) => (event) => {
@@ -93,7 +110,7 @@ const AddKbEntryForm = () => {
             />
             <Collapse in={showForm}>
                 <Stack spacing={2} sx={{p: 2}}>
-                    <h3>New Knowledgebase Entry</h3>
+                    <h3>{entryToEdit ? "Edit " : "New "}Knowledgebase Entry</h3>
                     <TextField label="Title" variant="outlined" value={newEntry.title} onChange={handleFormValueChange("title")}/>
                     <FormControlLabel control={<Checkbox inputProps={{ 'aria-label': 'controlled' }} checked={markdown} onChange={toggleMarkdown} />} label="Description in markdown?" />
                     <TextField label="Description" multiline minRows={3} variant="outlined" value={newEntry.desc} onChange={handleFormValueChange("desc")}/>

@@ -17,7 +17,7 @@ if (file_exists($filename)) {
 		$kbEntry->id = $row['id'];
 		$kbEntry->title = $row['title'];
 		$kbEntry->desc = $row['description'];
-		$kbEntry->markdown = $row['markdown'];
+		$kbEntry->markdown = $row['markdown'] == true || $row['markdown'] == 1;
 		$statement = $db->prepare($tagQuery);
 		$statement->bindValue(':kb_id', $kbEntry->id);
 		$tagResults = $statement->execute();

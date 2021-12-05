@@ -1,8 +1,16 @@
-import {KbEntry} from "../model/kb-entry";
 import {configureStore, createSlice} from "@reduxjs/toolkit";
+import {KbEntry} from "../model/kb-entry";
 import {Tag} from "../model/tag";
 
-const initialState: {kbEntries: KbEntry[], filterTags: Tag[], allTags: Tag[], nextTagId: number} = {kbEntries: [], filterTags: [], allTags: [], nextTagId: 1};
+export interface KbState {
+    kbEntries: KbEntry[];
+    editingEntry: KbEntry;
+    filterTags: Tag[];
+    allTags: Tag[];
+    nextTagId: number;
+}
+
+const initialState: KbState = {kbEntries: [], editingEntry: null, filterTags: [], allTags: [], nextTagId: 1} as KbState;
 
 const state = createSlice({
     name: "state",
@@ -30,6 +38,12 @@ const state = createSlice({
         addNewTag(state, action) {
             state.allTags.push({ ...action.payload, tagId: state.nextTagId });
             state.nextTagId += 1;
+        },
+        setEditingKbEntry(state, action) {
+            state.editingEntry = action.payload;
+        },
+        clearEditingKbEntry(state) {
+            state.editingEntry = null;
         }
     }
 });

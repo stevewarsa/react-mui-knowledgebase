@@ -4,7 +4,7 @@ import Divider from '@mui/material/Divider';
 import ListItemText from '@mui/material/ListItemText';
 import Typography from '@mui/material/Typography';
 import AddKbEntryForm from "../components/AddKbEntryForm";
-import {Box, Chip, Container, Stack} from "@mui/material";
+import {Box, Button, Chip, Container, Stack} from "@mui/material";
 import {useEffect, useState} from "react";
 import {KbEntry} from "../model/kb-entry";
 import kbService from "../services/KbService";
@@ -13,6 +13,7 @@ import {stateActions} from "../store";
 import React from 'react';
 import Spinner from "../components/Spinner";
 import MarkdownToHtml from "../components/MarkdownToHtml";
+import EditIcon from '@mui/icons-material/Edit';
 
 const Main = () => {
     const dispatcher = useDispatch();
@@ -93,6 +94,12 @@ const Main = () => {
                                                          variant="outlined"
                                                          onDelete={handleDelete}/>)}
                             </Box>
+                            <Box><Button variant="contained" startIcon={<EditIcon />} onClick={() => {
+                                console.log("Edit Button Clicked - setting editing entry to:");
+                                console.log(kb);
+                                dispatcher(stateActions.setEditingKbEntry(kb));
+                                window.scroll({top: 0, behavior: "smooth"});
+                            }}>Edit</Button></Box>
                             <Divider key={"div-" + kb.id} variant="inset" component="li"/>
                         </Stack>
                     </React.Fragment>
