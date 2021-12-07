@@ -101,6 +101,8 @@ const AddKbEntryForm = () => {
     };
 
     const handleTagSelection = (tag: Tag) => {
+        // console.log("handleTagSelection - the selected tag is:");
+        // console.log(tag);
         setAddEntryState(prevState => {
             const locEntry = {...prevState.newEntry};
             locEntry.tags = [...locEntry.tags, tag];

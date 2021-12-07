@@ -65,12 +65,12 @@ const TagSelection = ({ tagSelectionCallback, selectedTagIds }) => {
         console.log(reason);
         console.log("handleAutoCompleteChange - here are the details:");
         console.log(details);
-        if (reason && reason === "selectOption" && details && details.option) {
-            const existingTag = existingTags.find((tg: Tag) => tg.tagId === details.option.id);
+        const foundTag = details && details.option ? existingTags.find((tg: Tag) => tg.tagId === details.option.id) : null;
+        if (reason && reason === "selectOption" && details && details.option && foundTag) {
             console.log("handleAutoCompleteChange - reason is selectOption and details are populated - setting value back to defaultTag...  Here's the event:");
             console.log(event);
             setValue(defaultTag);
-            tagSelectionCallback(existingTag);
+            tagSelectionCallback(foundTag);
             return;
         }
         if (newValue === null) {
