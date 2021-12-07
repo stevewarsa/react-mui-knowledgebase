@@ -21,108 +21,131 @@ import TagSelection from "./TagSelection";
 import Spinner from "./Spinner";
 import MarkdownToHtml from "./MarkdownToHtml";
 
+interface AddEntryState {
+    showForm: boolean;
+    saving: boolean;
+    buttonText: string;
+    markdown: boolean;
+    newEntry: KbEntry;
+}
+
 const defaultBlankEntry = {
     title: "",
     desc: "",
     tags: []
 } as KbEntry;
 
+const defaultState = {
+    showForm: false,
+    saving: false,
+    buttonText: "",
+    markdown: false,
+    newEntry: defaultBlankEntry
+} as AddEntryState;
 const AddKbEntryForm = () => {
     const dispatcher = useDispatch();
     const entryToEdit = useSelector((state: KbState) => state.editingEntry);
-    console.log("AddKbEntryForm - entryToEdit passed in is:");
-    console.log(entryToEdit);
-    const [showForm, setShowForm] = useState(false);
-    const [saving, setSaving] = useState(false);
-    const [markdown, setMarkdown] = useState(false);
-    const [newEntry, setNewEntry] = useState(defaultBlankEntry);
+    const [addEntryState, setAddEntryState] = useState(defaultState);
     const largeScreen = useMediaQuery("(min-width:600px)");
 
     useEffect(() => {
         if (entryToEdit) {
-            setShowForm(true);
-            setNewEntry({...entryToEdit});
-            setMarkdown(entryToEdit.markdown);
+            setAddEntryState(prevState => {
+                return {...prevState, showForm: true, newEntry: {...entryToEdit}, markdown: entryToEdit.markdown, buttonText: largeScreen ? "Update Entry" : ""};
+            });
         } else {
-            setShowForm(false);
-            setNewEntry(defaultBlankEntry);
-            setMarkdown(false);
+            setAddEntryState(prevState => {
+                return {...prevState, showForm: false, newEntry: defaultBlankEntry, markdown: false, buttonText: largeScreen ? "Add Entry" : ""};
+            });
         }
-    }, [entryToEdit]);
+    }, [entryToEdit, largeScreen]);
 
     const handleToggleForm = (event) => {
-        setShowForm(prevState => !prevState);
+        setAddEntryState(prevState => {
+            return {...prevState, showForm: !prevState.showForm};
+        });
         event.preventDefault();
     };
 
     const handleAddEntry = async () => {
-        setSaving(true);
-        const entryToAdd = {...newEntry, markdown: markdown};
+        setAddEntryState(prevState => {
+            return {...prevState, saving: true};
+        });
+        const entryToAdd = {...addEntryState.newEntry, markdown: addEntryState.markdown};
         const addEntryResult: any = await kbService.addEntry(entryToAdd);
         dispatcher(stateActions.addKbEntry(addEntryResult.data));
         const tagsResult = await kbService.getTags();
         dispatcher(stateActions.setAllTags(tagsResult.data));
-        setNewEntry(defaultBlankEntry);
-        setShowForm(false);
-        setSaving(false);
+        setAddEntryState(prevState => {
+            return {...prevState, saving: false, showForm: false, newEntry: defaultBlankEntry};
+        });
         dispatcher(stateActions.clearEditingKbEntry());
     };
 
     const handleCancel = () => {
-        setShowForm(false);
+        setAddEntryState(prevState => {
+            return {...prevState, showForm: false};
+        });
         dispatcher(stateActions.clearEditingKbEntry());
     };
 
     const handleFormValueChange = (prop) => (event) => {
-        setNewEntry(prevState => {
-            return {...prevState, [prop]: event.target.value};
+        setAddEntryState(prevState => {
+            const locEntry = {...prevState.newEntry, [prop]: event.target.value};
+            return {...prevState, newEntry: locEntry};
         });
     };
 
     const handleTagSelection = (tag: Tag) => {
-        setNewEntry(prevState => {
-            return {...prevState, tags: [...prevState.tags, tag]};
+        setAddEntryState(prevState => {
+            const locEntry = {...prevState.newEntry};
+            locEntry.tags = [...locEntry.tags, tag];
+            return {...prevState, newEntry: locEntry};
         });
     };
 
     const handleRemoveTag = (tagId: number) => {
-        setNewEntry(prevState => {
-            return {...prevState, tags: prevState.tags.filter(tg => tg.tagId !== tagId)};
+        setAddEntryState(prevState => {
+            const locEntry = {...prevState.newEntry};
+            locEntry.tags = locEntry.tags.filter(tg => tg.tagId !== tagId);
+            return {...prevState, newEntry: locEntry};
         });
     }
 
     const toggleMarkdown = () => {
-        setMarkdown(prevState => !prevState);
+        setAddEntryState(prevState => {
+            return {...prevState, markdown: !prevState.markdown};
+        });
     }
 
     return (
         <>
-            {saving && <Spinner message={"Saving new entry..."}/>}
+            {addEntryState.saving && <Spinner message={"Saving new entry..."}/>}
             <FormControlLabel
-                label={showForm ? "Hide Add Form" : "Show Add Form"}
+                label={addEntryState.showForm ? "Hide Add Form" : "Show Add Form"}
                 control={
                     <IconButton
                         onClick={handleToggleForm}
                         sx={{m: 2}}>
-                        {showForm ? <ExpandMore sx={{fontSize: 40}} /> : <ChevronRight sx={{fontSize: 40}}/>}
+                        {addEntryState.showForm ? <ExpandMore sx={{fontSize: 40}} /> : <ChevronRight sx={{fontSize: 40}}/>}
                     </IconButton>
                 }
             />
-            <Collapse in={showForm}>
+            <Collapse in={addEntryState.showForm}>
                 <Stack spacing={2} sx={{p: 2}}>
                     <h3>{entryToEdit ? "Edit " : "New "}Knowledgebase Entry</h3>
-                    <TextField label="Title" variant="outlined" value={newEntry.title} onChange={handleFormValueChange("title")}/>
-                    <FormControlLabel control={<Checkbox inputProps={{ 'aria-label': 'controlled' }} checked={markdown} onChange={toggleMarkdown} />} label="Description in markdown?" />
-                    <TextField label="Description" multiline minRows={3} variant="outlined" value={newEntry.desc} onChange={handleFormValueChange("desc")}/>
-                    {markdown && <MarkdownToHtml markdown={newEntry.desc}/>}
+                    <TextField label="Title" variant="outlined" value={addEntryState.newEntry.title} onChange={handleFormValueChange("title")}/>
+                    <FormControlLabel control={<Checkbox inputProps={{ 'aria-label': 'controlled' }} checked={addEntryState.markdown} onChange={toggleMarkdown} />} label="Description in markdown?" />
+                    <TextField label="Description" multiline minRows={3} variant="outlined" value={addEntryState.newEntry.desc} onChange={handleFormValueChange("desc")}/>
+                    {addEntryState.markdown && <MarkdownToHtml markdown={addEntryState.newEntry.desc}/>}
                     <TagSelection tagSelectionCallback={handleTagSelection}/>
-                    {newEntry.tags !== null && newEntry.tags.length > 0 &&
+                    {addEntryState.newEntry.tags !== null && addEntryState.newEntry.tags.length > 0 &&
                     <Box>
-                        {newEntry.tags.map(tg => <Chip key={tg.tagId} label={tg.tagNm} sx={{mr: 1}} variant="outlined" onDelete={() => handleRemoveTag(tg.tagId)}/>)}
+                        {addEntryState.newEntry.tags.map(tg => <Chip key={tg.tagId} label={tg.tagNm} sx={{mr: 1}} variant="outlined" onDelete={() => handleRemoveTag(tg.tagId)}/>)}
                     </Box>
                     }
                     <Box>
-                        <Button sx={{mr: 2}} startIcon={<SaveIcon/>} onClick={handleAddEntry} variant="contained">{largeScreen ? "Add Entry" : ""}</Button>
+                        <Button sx={{mr: 2}} startIcon={<SaveIcon/>} onClick={handleAddEntry} variant="contained">{addEntryState.buttonText}</Button>
                         <Button startIcon={<Cancel/>} onClick={handleCancel}  variant="contained"
                                 color="secondary">{largeScreen ? "Cancel" : ""}</Button>
                     </Box>
