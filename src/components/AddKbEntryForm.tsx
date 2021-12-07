@@ -142,8 +142,8 @@ const AddKbEntryForm = () => {
                     <FormControlLabel control={<Checkbox inputProps={{ 'aria-label': 'controlled' }} checked={addEntryState.markdown} onChange={toggleMarkdown} />} label="Description in markdown?" />
                     <TextField label="Description" multiline minRows={3} variant="outlined" value={addEntryState.newEntry.desc} onChange={handleFormValueChange("desc")}/>
                     {addEntryState.markdown && <MarkdownToHtml markdown={addEntryState.newEntry.desc}/>}
-                    <TagSelection tagSelectionCallback={handleTagSelection}/>
-                    {addEntryState.newEntry.tags !== null && addEntryState.newEntry.tags.length > 0 &&
+                    <TagSelection selectedTagIds={addEntryState.newEntry.tags.map(tg => tg.tagId)} tagSelectionCallback={handleTagSelection}/>
+                    {addEntryState.newEntry.tags.length > 0 &&
                     <Box>
                         {addEntryState.newEntry.tags.map(tg => <Chip key={tg.tagId} label={tg.tagNm} sx={{mr: 1}} variant="outlined" onDelete={() => handleRemoveTag(tg.tagId)}/>)}
                     </Box>
