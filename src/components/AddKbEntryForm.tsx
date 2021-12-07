@@ -73,13 +73,17 @@ const AddKbEntryForm = () => {
         });
         const entryToAdd = {...addEntryState.newEntry, markdown: addEntryState.markdown};
         const addEntryResult: any = await kbService.addEntry(entryToAdd);
-        dispatcher(stateActions.addKbEntry(addEntryResult.data));
-        const tagsResult = await kbService.getTags();
-        dispatcher(stateActions.setAllTags(tagsResult.data));
-        setAddEntryState(prevState => {
-            return {...prevState, saving: false, showForm: false, newEntry: defaultBlankEntry};
-        });
-        dispatcher(stateActions.clearEditingKbEntry());
+        if (typeof addEntryResult.data === "string" && addEntryResult.data.startsWith("error")) {
+            console.log("Error came back from addEntry: " + addEntryResult.data);
+        } else {
+            dispatcher(stateActions.addKbEntry(addEntryResult.data));
+            const tagsResult = await kbService.getTags();
+            dispatcher(stateActions.setAllTags(tagsResult.data));
+            setAddEntryState(prevState => {
+                return {...prevState, saving: false, showForm: false, newEntry: defaultBlankEntry};
+            });
+            dispatcher(stateActions.clearEditingKbEntry());
+        }
     };
 
     const handleCancel = () => {
