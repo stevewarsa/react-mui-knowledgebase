@@ -8,9 +8,10 @@ export interface KbState {
     filterTags: Tag[];
     allTags: Tag[];
     nextTagId: number;
+    filteredEntries: KbEntry[];
 }
 
-const initialState: KbState = {kbEntries: [], editingEntry: null, filterTags: [], allTags: [], nextTagId: 1} as KbState;
+const initialState: KbState = {kbEntries: [], editingEntry: null, filterTags: [], allTags: [], nextTagId: 1, filteredEntries: []} as KbState;
 
 const state = createSlice({
     name: "state",
@@ -30,6 +31,7 @@ const state = createSlice({
         },
         setKbEntries(state, action) {
             state.kbEntries = action.payload;
+            state.filteredEntries = action.payload;
         },
         addFilterTag(state, action) {
             state.filterTags.push(action.payload);
@@ -53,6 +55,11 @@ const state = createSlice({
         },
         clearEditingKbEntry(state) {
             state.editingEntry = null;
+        },
+        setFilteredEntries(state, action) {
+            if (action.payload) {
+                state.filteredEntries = action.payload;
+            }
         }
     }
 });

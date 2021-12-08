@@ -4,7 +4,7 @@ import Divider from '@mui/material/Divider';
 import ListItemText from '@mui/material/ListItemText';
 import Typography from '@mui/material/Typography';
 import AddKbEntryForm from "../components/AddKbEntryForm";
-import {Box, Button, Chip, Container, Stack} from "@mui/material";
+import {Box, Button, Chip, Container, Stack, TextField} from "@mui/material";
 import {useEffect, useState} from "react";
 import {KbEntry} from "../model/kb-entry";
 import kbService from "../services/KbService";
@@ -14,11 +14,14 @@ import React from 'react';
 import Spinner from "../components/Spinner";
 import MarkdownToHtml from "../components/MarkdownToHtml";
 import EditIcon from '@mui/icons-material/Edit';
+import HighlightOffIcon from '@mui/icons-material/HighlightOff';
 
 const Main = () => {
     const dispatcher = useDispatch();
-    const kbEntries: KbEntry[] = useSelector((st: any) => st.kbEntries);
+    const kbEntries: KbEntry[] = useSelector((st: any) => st.filteredEntries);
+    const allKbEntries: KbEntry[] = useSelector((st: any) => st.kbEntries);
     const [busy, setBusy] = useState({state: false, message: ""});
+    const [searchText, setSearchText] = useState("");
 
     useEffect(() => {
         const callServer = async () => {
@@ -68,43 +71,74 @@ const Main = () => {
         }
     };
 
+    const handleSearch = (event) => {
+        // console.log("handleSearch - here is the event:");
+        // console.log(event);
+        const searchString = event.target.value;
+        if (!searchString || searchString === "") {
+            dispatcher(stateActions.setFilteredEntries(allKbEntries));
+            setSearchText("");
+        } else {
+            // console.log("handleSearch - here is the search string:");
+            // console.log(searchString);
+            const filteredEntries = kbEntries.filter(kb => kb.title.toUpperCase().includes(searchString.toUpperCase()) || kb.desc.toUpperCase().includes(searchString.toUpperCase()));
+            dispatcher(stateActions.setFilteredEntries(filteredEntries));
+            setSearchText(searchString);
+        }
+    };
+
+    const handleClear = () => {
+        setBusy({state: true, message: "Clearing filter..."});
+        setSearchText("");
+        dispatcher(stateActions.setFilteredEntries(allKbEntries));
+        setBusy({state: false, message: ""});
+    };
+
     return (
         <Container>
             {busy.state && <Spinner message={busy.message}/>}
-            {!busy.state && <AddKbEntryForm/>}
-            {!busy.state && <List sx={{width: '100%', bgcolor: 'background.paper'}}>
-                {kbEntries && kbEntries.length > 0 && kbEntries.map(kb =>
-                    <React.Fragment key={"frag-" + kb.id}>
-                        <ListItem key={kb.id} alignItems="flex-start">
-                            <ListItemText
-                                key={"lit-" + kb.id}
-                                primary={kb.title}
-                                primaryTypographyProps={{
-                                    fontSize: 20,
-                                    fontWeight: "bold"
-                                }}
-                                secondary={getDescriptionDisplayJSX(kb)}
-                            />
-                        </ListItem>
-                        <Stack sx={{ml: 2}} spacing={2}>
-                            <Box>
-                                {kb.tags.map(tg => <Chip key={kb.id + "-" + tg.tagId}
-                                                         label={tg.tagNm}
-                                                         sx={{mr: 1}}
-                                                         variant="outlined"
-                                                         onDelete={handleDelete}/>)}
-                            </Box>
-                            <Box><Button variant="contained" startIcon={<EditIcon />} onClick={() => {
-                                console.log("Edit Button Clicked - setting editing entry to:");
-                                console.log(kb);
-                                dispatcher(stateActions.setEditingKbEntry(kb));
-                                window.scroll({top: 0, behavior: "smooth"});
-                            }}>Edit</Button></Box>
-                            <Divider key={"div-" + kb.id} variant="inset" component="li"/>
-                        </Stack>
-                    </React.Fragment>
-                )}
-            </List>}
+            {!busy.state &&
+                <>
+                    <AddKbEntryForm/>
+                    <p><strong>Number of entries shown:</strong> {kbEntries.length}</p>
+                    <Box>
+                        <TextField value={searchText} sx={{mr: 2}} label="Search Entries" variant="outlined" onChange={handleSearch}/>
+                        <Button variant="contained" disabled={kbEntries.length === allKbEntries.length} startIcon={<HighlightOffIcon />} onClick={handleClear}>Clear</Button>
+                    </Box>
+                    <List sx={{width: '100%', bgcolor: 'background.paper'}}>
+                    {kbEntries && kbEntries.length > 0 && kbEntries.map(kb =>
+                        <React.Fragment key={"frag-" + kb.id}>
+                            <ListItem key={kb.id} alignItems="flex-start">
+                                <ListItemText
+                                    key={"lit-" + kb.id}
+                                    primary={kb.title}
+                                    primaryTypographyProps={{
+                                        fontSize: 20,
+                                        fontWeight: "bold"
+                                    }}
+                                    secondary={getDescriptionDisplayJSX(kb)}
+                                />
+                            </ListItem>
+                            <Stack sx={{ml: 2}} spacing={2}>
+                                <Box>
+                                    {kb.tags.map(tg => <Chip key={kb.id + "-" + tg.tagId}
+                                                             label={tg.tagNm}
+                                                             sx={{mr: 1}}
+                                                             variant="outlined"
+                                                             onDelete={handleDelete}/>)}
+                                </Box>
+                                <Box><Button variant="contained" startIcon={<EditIcon />} onClick={() => {
+                                    console.log("Edit Button Clicked - setting editing entry to:");
+                                    console.log(kb);
+                                    dispatcher(stateActions.setEditingKbEntry(kb));
+                                    window.scroll({top: 0, behavior: "smooth"});
+                                }}>Edit</Button></Box>
+                                <Divider key={"div-" + kb.id} variant="inset" component="li"/>
+                            </Stack>
+                        </React.Fragment>
+                    )}
+                    </List>
+                </>}
         </Container>
     );
 };

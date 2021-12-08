@@ -2,7 +2,8 @@ import {
     Box,
     Button, Checkbox,
     Chip,
-    Collapse,
+    Collapse, Dialog, DialogActions, DialogContent, DialogContentText,
+    DialogTitle,
     FormControlLabel,
     IconButton,
     Stack,
@@ -11,6 +12,7 @@ import {
 } from "@mui/material";
 import {useEffect, useState} from "react";
 import SaveIcon from '@mui/icons-material/Save';
+import RemoveCircleIcon from '@mui/icons-material/RemoveCircle';
 import {Cancel, ChevronRight, ExpandMore} from "@mui/icons-material";
 import {KbEntry} from "../model/kb-entry";
 import kbService from "../services/KbService";
@@ -27,6 +29,7 @@ interface AddEntryState {
     buttonText: string;
     markdown: boolean;
     newEntry: KbEntry;
+    openRemoveConfirmationDialog: boolean;
 }
 
 const defaultBlankEntry = {
@@ -40,7 +43,8 @@ const defaultState = {
     saving: false,
     buttonText: "",
     markdown: false,
-    newEntry: defaultBlankEntry
+    newEntry: defaultBlankEntry,
+    openRemoveConfirmationDialog: false
 } as AddEntryState;
 const AddKbEntryForm = () => {
     const dispatcher = useDispatch();
@@ -124,6 +128,18 @@ const AddKbEntryForm = () => {
         });
     }
 
+    const handleRemoveEntry = () => {
+        console.log("handleRemoveEntry...");
+        handleClose();
+    };
+
+    const handleClose = () => {
+        console.log("handleClose");
+        setAddEntryState(prevState => {
+            return {...prevState, openRemoveConfirmationDialog: false};
+        });
+    };
+
     return (
         <>
             {addEntryState.saving && <Spinner message={"Saving new entry..."}/>}
@@ -152,9 +168,35 @@ const AddKbEntryForm = () => {
                     }
                     <Box>
                         <Button sx={{mr: 2}} startIcon={<SaveIcon/>} onClick={handleAddEntry} variant="contained">{addEntryState.buttonText}</Button>
+                        {entryToEdit && <Button sx={{mr: 2}} color="error" startIcon={<RemoveCircleIcon/>} onClick={() => {
+                            setAddEntryState(prevState => {
+                                return {...prevState, openRemoveConfirmationDialog: true};
+                            });
+                        }} variant="contained">Remove Entry</Button>}
                         <Button startIcon={<Cancel/>} onClick={handleCancel}  variant="contained"
                                 color="secondary">{largeScreen ? "Cancel" : ""}</Button>
                     </Box>
+                    <Dialog
+                        open={addEntryState.openRemoveConfirmationDialog}
+                        onClose={handleClose}
+                        aria-labelledby="alert-dialog-title"
+                        aria-describedby="alert-dialog-description"
+                    >
+                        <DialogTitle id="alert-dialog-title">
+                            {"Remove entry?"}
+                        </DialogTitle>
+                        <DialogContent>
+                            <DialogContentText id="alert-dialog-description">
+                                Are you sure you would like to permanently remove this entry?
+                            </DialogContentText>
+                        </DialogContent>
+                        <DialogActions>
+                            <Button onClick={handleClose} autoFocus>Keep</Button>
+                            <Button onClick={() => handleRemoveEntry()}>
+                                Remove
+                            </Button>
+                        </DialogActions>
+                    </Dialog>
                 </Stack>
             </Collapse>
         </>
