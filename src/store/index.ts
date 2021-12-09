@@ -27,6 +27,7 @@ const state = createSlice({
             } else {
                 console.log("addKbEntry - the incoming KB does NOT exist in the store, adding it...");
                 state.kbEntries.unshift(action.payload);
+                state.filteredEntries.unshift(action.payload);
             }
         },
         setKbEntries(state, action) {
