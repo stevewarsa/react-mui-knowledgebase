@@ -4,7 +4,7 @@ import Divider from '@mui/material/Divider';
 import ListItemText from '@mui/material/ListItemText';
 import Typography from '@mui/material/Typography';
 import AddKbEntryForm from "../components/AddKbEntryForm";
-import {Box, Button, Chip, Container, Stack, TextField} from "@mui/material";
+import {Box, Button, Chip, Container, Grid, Stack, TextField, useMediaQuery} from "@mui/material";
 import {useEffect, useState} from "react";
 import {KbEntry} from "../model/kb-entry";
 import kbService from "../services/KbService";
@@ -15,6 +15,7 @@ import Spinner from "../components/Spinner";
 import MarkdownToHtml from "../components/MarkdownToHtml";
 import EditIcon from '@mui/icons-material/Edit';
 import HighlightOffIcon from '@mui/icons-material/HighlightOff';
+import PsychologyIcon from '@mui/icons-material/Psychology';
 
 const Main = () => {
     const dispatcher = useDispatch();
@@ -22,6 +23,7 @@ const Main = () => {
     const allKbEntries: KbEntry[] = useSelector((st: any) => st.kbEntries);
     const [busy, setBusy] = useState({state: false, message: ""});
     const [searchText, setSearchText] = useState("");
+    const largeScreen = useMediaQuery("(min-width:600px)");
 
     useEffect(() => {
         const callServer = async () => {
@@ -72,16 +74,16 @@ const Main = () => {
     };
 
     const handleSearch = (event) => {
-        // console.log("handleSearch - here is the event:");
-        // console.log(event);
         const searchString = event.target.value;
+        console.log("handleSearch - here is the searchString:");
+        console.log(searchString);
         if (!searchString || searchString === "") {
             dispatcher(stateActions.setFilteredEntries(allKbEntries));
             setSearchText("");
         } else {
             // console.log("handleSearch - here is the search string:");
             // console.log(searchString);
-            const filteredEntries = kbEntries.filter(kb => kb.title.toUpperCase().includes(searchString.toUpperCase()) || kb.desc.toUpperCase().includes(searchString.toUpperCase()));
+            const filteredEntries = allKbEntries.filter(kb => kb.title.toUpperCase().includes(searchString.toUpperCase()) || kb.desc.toUpperCase().includes(searchString.toUpperCase()));
             dispatcher(stateActions.setFilteredEntries(filteredEntries));
             setSearchText(searchString);
         }
@@ -99,6 +101,14 @@ const Main = () => {
             {busy.state && <Spinner message={busy.message}/>}
             {!busy.state &&
                 <>
+                    <Grid container sx={{ mt: 2, py: 4, border: 3, borderColor: 'grey.500'}} spacing={2}>
+                        <Grid item xs={1}>
+                            <PsychologyIcon sx={largeScreen ? { fontSize: 50 } : { fontSize: 30 }}/>
+                        </Grid>
+                        <Grid item xs={11}>
+                            <Typography variant={largeScreen ? "h3" : "h5"} fontWeight="bold">Knowledgebase</Typography>
+                        </Grid>
+                    </Grid>
                     <AddKbEntryForm/>
                     <p><strong>Number of entries shown:</strong> {kbEntries.length}</p>
                     <Box>

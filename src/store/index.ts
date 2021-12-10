@@ -24,6 +24,10 @@ const state = createSlice({
                 console.log("addKbEntry - the incoming KB already exists in the store at index '" +
                     matchingKbIndexFromStore + "', replacing store KB with it...");
                 state.kbEntries[matchingKbIndexFromStore] = incomingKb;
+                const matchingFilteredKbIndexFromStore = state.filteredEntries.findIndex(kb => kb.id === incomingKb.id);
+                if (matchingFilteredKbIndexFromStore >= 0) {
+                    state.filteredEntries[matchingFilteredKbIndexFromStore] = incomingKb;
+                }
             } else {
                 console.log("addKbEntry - the incoming KB does NOT exist in the store, adding it...");
                 state.kbEntries.unshift(action.payload);
