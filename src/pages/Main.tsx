@@ -55,6 +55,15 @@ const Main = () => {
         console.log("handleDelete clicked");
     }
 
+    const markMatches = (text: string) => {
+        if (!searchText || searchText === "") {
+            return text;
+        } else {
+            console.log("markMatches - searchText: '" + searchText);
+            return text.replaceAll(searchText, "<span style=\"background-color: #FFFF00\">" + searchText + "</span>");
+        }
+    };
+
     const getDescriptionDisplayJSX = (kb: KbEntry) => {
         if (kb.markdown) {
             return <MarkdownToHtml markdown={kb.desc}/>;
