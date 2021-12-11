@@ -61,6 +61,7 @@ const Main = () => {
                 });
             }
             dispatcher(stateActions.setKbEntries(kbEntriesData.data));
+            setFilterTag(-1);
             setBusy({state: false, message: ""});
         };
         callServer();
@@ -98,36 +99,66 @@ const Main = () => {
         }
     };
 
-    const handleSearch = (event) => {
-        const searchString = event.target.value;
-        // console.log("handleSearch - here is the searchString:");
-        // console.log(searchString);
-        if (!searchString || searchString === "") {
-            dispatcher(stateActions.setFilteredEntries(allKbEntries));
-            setSearchText("");
-        } else {
-            // console.log("handleSearch - here is the search string:");
-            // console.log(searchString);
-            const filteredEntries = allKbEntries.filter(kb => kb.title.toUpperCase().includes(searchString.toUpperCase()) || kb.desc.toUpperCase().includes(searchString.toUpperCase()));
-            dispatcher(stateActions.setFilteredEntries(filteredEntries));
-            setSearchText(searchString);
+    const SEARCH_TEXT = "searchText";
+    const FILTER_TAG = "filterTag";
+    const handleSearch = (event, src: string) => {
+        // reusable text filter function to be called in either case
+        const textFilterFunc = (baseEntryList: KbEntry[], searchCriteria: string) => {
+            return baseEntryList.filter(knowledgebaseEntry =>
+                knowledgebaseEntry.title.toUpperCase().includes(searchCriteria.toUpperCase()) ||
+                knowledgebaseEntry.desc.toUpperCase().includes(searchCriteria.toUpperCase()));
         }
+        // reusable tag filter function to be called in either case
+        const tagFilterFunc = (baseEntryList: KbEntry[], tagId: number) => allKbEntries.filter(kb => kb.tags.find(tg => tg.tagId === tagId));
+        let newEntryList: KbEntry[] = [];
+        if (src === SEARCH_TEXT) {
+            const searchString = event.target.value;
+            // console.log("handleSearch - here is the searchString:");
+            // console.log(searchString);
+            if (!searchString || searchString === "") {
+                newEntryList = filterTag === -1 ? allKbEntries : tagFilterFunc(allKbEntries, filterTag);
+                setSearchText("");
+            } else {
+                // console.log("handleSearch - here is the search string:");
+                // console.log(searchString);
+                // If there is currently a filter tag selected, then search within that, otherwise, search all entries
+                let baseEntryList = filterTag === -1 ? allKbEntries : kbEntries;
+                newEntryList = textFilterFunc(baseEntryList, searchString);
+                setSearchText(searchString);
+            }
+        } else if (src === FILTER_TAG) {
+            const locFilterTag = parseInt(event.target.value);
+            if (locFilterTag === -1) {
+                // clearing tag filter
+                if (searchText && searchText !== "") {
+                    // there is a text filter
+                    newEntryList = textFilterFunc(allKbEntries, searchText);
+                } else {
+                    // there is no text filter
+                    newEntryList = allKbEntries;
+                }
+            } else {
+                // setting tag filter
+                if (searchText && searchText !== "") {
+                    // there is a text filter
+                    newEntryList = textFilterFunc(tagFilterFunc(allKbEntries, locFilterTag), searchText);
+                } else {
+                    // there is no text filter
+                    newEntryList = tagFilterFunc(allKbEntries, locFilterTag);
+                }
+            }
+            setFilterTag(locFilterTag);
+        }
+        dispatcher(stateActions.setFilteredEntries(newEntryList));
     };
 
     const handleClear = () => {
         setBusy({state: true, message: "Clearing filter..."});
         setSearchText("");
+        setFilterTag(-1);
         dispatcher(stateActions.setFilteredEntries(allKbEntries));
         setBusy({state: false, message: ""});
     };
-
-    const handleFilterTagChange = (event) => {
-        // console.log("handleFilterTagChange - " + event.target.value);
-        const locFilterTag = parseInt(event.target.value);
-        const filteredEntries = locFilterTag === -1 ? allKbEntries : allKbEntries.filter(kb => kb.tags.find(tg => tg.tagId === locFilterTag));
-        dispatcher(stateActions.setFilteredEntries(filteredEntries));
-        setFilterTag(locFilterTag);
-    }
 
     return (
         <Container>
@@ -145,22 +176,27 @@ const Main = () => {
                     <AddKbEntryForm/>
                     <p><strong>Number of entries shown:</strong> {kbEntries.length}</p>
                     <Box>
-                        <TextField value={searchText} sx={{mr: 2}} label="Search Entries" variant="outlined" onChange={handleSearch}/>
-                        <Button variant="contained" disabled={kbEntries.length === allKbEntries.length} startIcon={<HighlightOffIcon />} onClick={handleClear}>Clear</Button>
+                        <TextField
+                            style={{ height: 60 }}
+                            value={searchText}
+                            label="Search Entries"
+                            variant="outlined"
+                            onChange={(event) => handleSearch(event, SEARCH_TEXT)}/>
                         <FormControl>
-                            <InputLabel sx={{ml: 4}} id="demo-simple-select-label">Age</InputLabel>
+                            <InputLabel sx={{ml: 2}} id="tag-filter-label">Tag</InputLabel>
                             <Select
-                                id="demo-simple-select"
-                                labelId="demo-simple-select-label"
+                                labelId="tag-filter-label"
                                 value={filterTag}
                                 label="Tag"
-                                sx={{ml: 4}}
-                                onChange={handleFilterTagChange}
+                                sx={{ml: 2, mr: 2}}
+                                style={{ height: 56 }}
+                                onChange={(event) => handleSearch(event, FILTER_TAG)}
                             >
-                                <MenuItem key={-1} value={-1}>--Select Tag to Filter--</MenuItem>
+                                <MenuItem key={-1} value={-1}>All Tags</MenuItem>
                                 {existingTags.map(tg => <MenuItem key={tg.tagId} value={tg.tagId}>{tg.tagNm}</MenuItem>)}
                             </Select>
                         </FormControl>
+                        <Button style={{ height: 56 }} variant="contained" disabled={kbEntries.length === allKbEntries.length} startIcon={<HighlightOffIcon />} onClick={handleClear}>Clear</Button>
                     </Box>
                     <List sx={{width: '100%', bgcolor: 'background.paper'}}>
                     {kbEntries && kbEntries.length > 0 && kbEntries.map(kb =>
