@@ -122,7 +122,7 @@ const Main = () => {
                 // console.log("handleSearch - here is the search string:");
                 // console.log(searchString);
                 // If there is currently a filter tag selected, then search within that, otherwise, search all entries
-                let baseEntryList = filterTag === -1 ? allKbEntries : kbEntries;
+                let baseEntryList = filterTag === -1 ? allKbEntries : tagFilterFunc(kbEntries, filterTag);
                 newEntryList = textFilterFunc(baseEntryList, searchString);
                 setSearchText(searchString);
             }
