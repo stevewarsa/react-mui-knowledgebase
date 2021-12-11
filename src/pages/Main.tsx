@@ -12,13 +12,14 @@ import {useDispatch, useSelector} from "react-redux";
 import {stateActions} from "../store";
 import React from 'react';
 import Spinner from "../components/Spinner";
-import MarkdownToHtml from "../components/MarkdownToHtml";
 import EditIcon from '@mui/icons-material/Edit';
 import HighlightOffIcon from '@mui/icons-material/HighlightOff';
 import PsychologyIcon from '@mui/icons-material/Psychology';
+import showdown from "showdown";
 
 const Main = () => {
     const dispatcher = useDispatch();
+    const converter = new showdown.Converter();
     const kbEntries: KbEntry[] = useSelector((st: any) => st.filteredEntries);
     const allKbEntries: KbEntry[] = useSelector((st: any) => st.kbEntries);
     const [busy, setBusy] = useState({state: false, message: ""});
@@ -59,14 +60,15 @@ const Main = () => {
         if (!searchText || searchText === "") {
             return text;
         } else {
-            console.log("markMatches - searchText: '" + searchText);
-            return text.replaceAll(searchText, "<span style=\"background-color: #FFFF00\">" + searchText + "</span>");
+            //console.log("markMatches - searchText: '" + searchText);
+            const reg = new RegExp('('+searchText+')', 'gi');
+            return text.replace(reg, "<span style=\"background-color: #FFFF00\">$1</span>");
         }
     };
 
     const getDescriptionDisplayJSX = (kb: KbEntry) => {
         if (kb.markdown) {
-            return <MarkdownToHtml markdown={kb.desc}/>;
+            return <span dangerouslySetInnerHTML={{__html: markMatches(converter.makeHtml(kb.desc))}}/>;
         } else {
             return (
                 <Typography
@@ -75,17 +77,16 @@ const Main = () => {
                     component="span"
                     variant="body2"
                     color="text.primary"
-                >
-                    {kb.desc}
-                </Typography>
+                    dangerouslySetInnerHTML={{__html: markMatches(kb.desc)}}
+                />
             );
         }
     };
 
     const handleSearch = (event) => {
         const searchString = event.target.value;
-        console.log("handleSearch - here is the searchString:");
-        console.log(searchString);
+        // console.log("handleSearch - here is the searchString:");
+        // console.log(searchString);
         if (!searchString || searchString === "") {
             dispatcher(stateActions.setFilteredEntries(allKbEntries));
             setSearchText("");
@@ -130,11 +131,12 @@ const Main = () => {
                             <ListItem key={kb.id} alignItems="flex-start">
                                 <ListItemText
                                     key={"lit-" + kb.id}
-                                    primary={kb.title}
-                                    primaryTypographyProps={{
-                                        fontSize: 20,
-                                        fontWeight: "bold"
-                                    }}
+                                    disableTypography
+                                    primary={
+                                        <Typography
+                                            sx={{fontSize: 20,fontWeight: "bold"}}
+                                            dangerouslySetInnerHTML={{__html: markMatches(kb.title)}}/>
+                                    }
                                     secondary={getDescriptionDisplayJSX(kb)}
                                 />
                             </ListItem>
