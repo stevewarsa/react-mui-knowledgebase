@@ -4,7 +4,19 @@ import Divider from '@mui/material/Divider';
 import ListItemText from '@mui/material/ListItemText';
 import Typography from '@mui/material/Typography';
 import AddKbEntryForm from "../components/AddKbEntryForm";
-import {Box, Button, Chip, Container, Grid, Stack, TextField, useMediaQuery} from "@mui/material";
+import {
+    Box,
+    Button,
+    Chip,
+    Container,
+    FormControl,
+    Grid, InputLabel,
+    MenuItem,
+    Select,
+    Stack,
+    TextField,
+    useMediaQuery
+} from "@mui/material";
 import {useEffect, useState} from "react";
 import {KbEntry} from "../model/kb-entry";
 import kbService from "../services/KbService";
@@ -16,14 +28,17 @@ import EditIcon from '@mui/icons-material/Edit';
 import HighlightOffIcon from '@mui/icons-material/HighlightOff';
 import PsychologyIcon from '@mui/icons-material/Psychology';
 import showdown from "showdown";
+import {Tag} from "../model/tag";
 
 const Main = () => {
     const dispatcher = useDispatch();
     const converter = new showdown.Converter();
     const kbEntries: KbEntry[] = useSelector((st: any) => st.filteredEntries);
     const allKbEntries: KbEntry[] = useSelector((st: any) => st.kbEntries);
+    const existingTags: Tag[] = useSelector((st: any) => st.allTags);
     const [busy, setBusy] = useState({state: false, message: ""});
     const [searchText, setSearchText] = useState("");
+    const [filterTag, setFilterTag] = useState(-1);
     const largeScreen = useMediaQuery("(min-width:600px)");
 
     useEffect(() => {
@@ -106,6 +121,14 @@ const Main = () => {
         setBusy({state: false, message: ""});
     };
 
+    const handleFilterTagChange = (event) => {
+        // console.log("handleFilterTagChange - " + event.target.value);
+        const locFilterTag = parseInt(event.target.value);
+        const filteredEntries = locFilterTag === -1 ? allKbEntries : allKbEntries.filter(kb => kb.tags.find(tg => tg.tagId === locFilterTag));
+        dispatcher(stateActions.setFilteredEntries(filteredEntries));
+        setFilterTag(locFilterTag);
+    }
+
     return (
         <Container>
             {busy.state && <Spinner message={busy.message}/>}
@@ -124,6 +147,20 @@ const Main = () => {
                     <Box>
                         <TextField value={searchText} sx={{mr: 2}} label="Search Entries" variant="outlined" onChange={handleSearch}/>
                         <Button variant="contained" disabled={kbEntries.length === allKbEntries.length} startIcon={<HighlightOffIcon />} onClick={handleClear}>Clear</Button>
+                        <FormControl>
+                            <InputLabel sx={{ml: 4}} id="demo-simple-select-label">Age</InputLabel>
+                            <Select
+                                id="demo-simple-select"
+                                labelId="demo-simple-select-label"
+                                value={filterTag}
+                                label="Tag"
+                                sx={{ml: 4}}
+                                onChange={handleFilterTagChange}
+                            >
+                                <MenuItem key={-1} value={-1}>--Select Tag to Filter--</MenuItem>
+                                {existingTags.map(tg => <MenuItem key={tg.tagId} value={tg.tagId}>{tg.tagNm}</MenuItem>)}
+                            </Select>
+                        </FormControl>
                     </Box>
                     <List sx={{width: '100%', bgcolor: 'background.paper'}}>
                     {kbEntries && kbEntries.length > 0 && kbEntries.map(kb =>
